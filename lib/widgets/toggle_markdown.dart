@@ -37,14 +37,18 @@ class ToggleableMarkdownEditor extends StatefulWidget {
     this.editIcon,
     this.previewIcon,
     this.toggleButtonStyle,
+    this.editButtonTextStyle,
+    this.previewButtonTextStyle,
   });
 
-  // New properties for customization
+  // Button customization properties
   final String editButtonLabel;
   final String previewButtonLabel;
   final Icon? editIcon;
   final Icon? previewIcon;
   final ButtonStyle? toggleButtonStyle;
+  final TextStyle? editButtonTextStyle;
+  final TextStyle? previewButtonTextStyle;
 
   final String? markdownSyntax;
   final String? hintText;
@@ -130,11 +134,13 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final Icon defaultEditIcon = Icon(_isEditing ? Icons.preview : Icons.edit);
     final String buttonLabel = _isEditing ? widget.previewButtonLabel : widget.editButtonLabel;
     final Icon buttonIcon = _isEditing 
         ? (widget.previewIcon ?? Icon(Icons.preview))
         : (widget.editIcon ?? Icon(Icons.edit));
+    final TextStyle? buttonTextStyle = _isEditing 
+        ? widget.previewButtonTextStyle 
+        : widget.editButtonTextStyle;
 
     return FocusableActionDetector(
       shortcuts: {
@@ -165,7 +171,10 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
               TextButton.icon(
                 onPressed: _toggleMode,
                 icon: buttonIcon,
-                label: Text(buttonLabel),
+                label: Text(
+                  buttonLabel,
+                  style: buttonTextStyle,
+                ),
                 style: widget.toggleButtonStyle,
               ),
             ],
