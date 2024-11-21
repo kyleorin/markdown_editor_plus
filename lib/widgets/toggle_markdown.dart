@@ -32,7 +32,19 @@ class ToggleableMarkdownEditor extends StatefulWidget {
     this.hintText,
     this.previewStyle,
     this.preserveLineBreaks = true,
+    this.editButtonLabel = 'Edit',
+    this.previewButtonLabel = 'Preview',
+    this.editIcon,
+    this.previewIcon,
+    this.toggleButtonStyle,
   });
+
+  // New properties for customization
+  final String editButtonLabel;
+  final String previewButtonLabel;
+  final Icon? editIcon;
+  final Icon? previewIcon;
+  final ButtonStyle? toggleButtonStyle;
 
   final String? markdownSyntax;
   final String? hintText;
@@ -73,10 +85,9 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
     }
     
     if (widget.preserveLineBreaks) {
-      // Add two spaces at the end of each line to force line breaks in Markdown
       return _internalController.text
           .split('\n')
-          .map((line) => '$line  ') // Add two spaces to end of each line
+          .map((line) => '$line  ')
           .join('\n');
     }
     
@@ -119,6 +130,12 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final Icon defaultEditIcon = Icon(_isEditing ? Icons.preview : Icons.edit);
+    final String buttonLabel = _isEditing ? widget.previewButtonLabel : widget.editButtonLabel;
+    final Icon buttonIcon = _isEditing 
+        ? (widget.previewIcon ?? Icon(Icons.preview))
+        : (widget.editIcon ?? Icon(Icons.edit));
+
     return FocusableActionDetector(
       shortcuts: {
         LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyB): BoldTextIntent(),
@@ -147,8 +164,9 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
             children: [
               TextButton.icon(
                 onPressed: _toggleMode,
-                icon: Icon(_isEditing ? Icons.preview : Icons.edit),
-                label: Text(_isEditing ? 'Preview' : 'Edit'),
+                icon: buttonIcon,
+                label: Text(buttonLabel),
+                style: widget.toggleButtonStyle,
               ),
             ],
           ),
