@@ -102,6 +102,7 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
   void initState() {
     super.initState();
     _internalController = widget.controller ?? TextEditingController();
+    _internalController.addListener(_handleTextChange);
     _toolbar = Toolbar(
       controller: _internalController,
       bringEditorToFocus: () {
@@ -112,8 +113,15 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
     );
   }
 
+  void _handleTextChange() {
+    if (widget.onChanged != null) {
+      widget.onChanged!(_internalController.text);
+    }
+  }
+
   @override
   void dispose() {
+    _internalController.removeListener(_handleTextChange);
     if (widget.controller == null) {
       _internalController.dispose();
     }
@@ -187,7 +195,14 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
               inputFormatters: [
                 if (widget.emojiConvert) EmojiInputFormatter(),
               ],
-              onChanged: widget.onChanged,
+              onChanged: (value) {
+                _internalController.value = _internalController.value.copyWith(
+                  text: value,
+                  selection: _internalController.selection,
+                  composing: _internalController.value.composing,
+                );
+                widget.onChanged?.call(value);
+              },
               onTap: widget.onTap,
               readOnly: widget.readOnly,
               scrollController: widget.scrollController,
