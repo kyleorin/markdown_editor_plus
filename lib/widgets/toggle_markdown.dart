@@ -103,10 +103,11 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
     super.initState();
     _internalController = widget.controller ?? TextEditingController();
     _internalController.addListener(_handleTextChange);
+    _textFieldFocusNode.addListener(_handleFocusChange);
     _toolbar = Toolbar(
       controller: _internalController,
       bringEditorToFocus: () {
-        if (!_textFieldFocusNode.hasFocus) {
+        if (!_textFieldFocusNode.hasFocus && _isEditing) {
           _textFieldFocusNode.requestFocus();
         }
       },
@@ -119,9 +120,16 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
     }
   }
 
+  void _handleFocusChange() {
+    if (!_isEditing && _textFieldFocusNode.hasFocus) {
+      _textFieldFocusNode.unfocus();
+    }
+  }
+
   @override
   void dispose() {
     _internalController.removeListener(_handleTextChange);
+    _textFieldFocusNode.removeListener(_handleFocusChange);
     if (widget.controller == null) {
       _internalController.dispose();
     }
@@ -129,12 +137,20 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(ToggleableMarkdownEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != null && widget.controller != oldWidget.controller) {
+      _internalController.removeListener(_handleTextChange);
+      _internalController = widget.controller!;
+      _internalController.addListener(_handleTextChange);
+    }
+  }
+
   void _toggleMode() {
     setState(() {
       _isEditing = !_isEditing;
-      if (_isEditing) {
-        _textFieldFocusNode.requestFocus();
-      } else {
+      if (!_isEditing) {
         _textFieldFocusNode.unfocus();
       }
     });
@@ -196,14 +212,13 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
                 if (widget.emojiConvert) EmojiInputFormatter(),
               ],
               onChanged: (value) {
-                _internalController.value = _internalController.value.copyWith(
-                  text: value,
-                  selection: _internalController.selection,
-                  composing: _internalController.value.composing,
-                );
                 widget.onChanged?.call(value);
               },
-              onTap: widget.onTap,
+              onTap: () {
+                if (widget.onTap != null) {
+                  widget.onTap!();
+                }
+              },
               readOnly: widget.readOnly,
               scrollController: widget.scrollController,
               style: widget.style,
