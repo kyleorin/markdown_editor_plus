@@ -91,7 +91,7 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
 
   void _updateTextDirection(String text) {
     if (text.isEmpty) return;
-    final RegExp rtlScript = RegExp(r'[\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC]');
+    final RegExp rtlScript = RegExp(r'[֑-߿יִ-﷽ﹰ-ﻼ]');
     final firstChar = text.characters.firstWhere(
       (char) => char.trim().isNotEmpty,
       orElse: () => '',
@@ -223,6 +223,10 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
                 widget.onChanged?.call(value);
               },
               onTap: () {
+                if (!_isEditing) {
+                  _textFieldFocusNode.unfocus();
+                  return;
+                }
                 if (widget.onTap != null) {
                   widget.onTap!();
                 }
@@ -237,6 +241,7 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               textDirection: _textDirection,
+              textAlign: _textDirection == TextDirection.rtl ? TextAlign.right : TextAlign.left,
               autofocus: false,
               decoration: widget.decoration.copyWith(
                 alignLabelWithHint: true,
@@ -261,10 +266,13 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
           ] else
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: MarkdownBody(
-                data: _previewText,
-                styleSheet: widget.previewStyle,
-                softLineBreak: widget.preserveLineBreaks,
+              child: Directionality(
+                textDirection: _textDirection,
+                child: MarkdownBody(
+                  data: _previewText,
+                  styleSheet: widget.previewStyle,
+                  softLineBreak: widget.preserveLineBreaks,
+                ),
               ),
             ),
         ],
