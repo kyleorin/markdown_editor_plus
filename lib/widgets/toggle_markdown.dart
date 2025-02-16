@@ -84,14 +84,9 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
   bool _isEditing = true;
   TextDirection _textDirection = TextDirection.ltr;
   
-  String get _previewText {
-    final text = _internalController.text;
-    return text.isEmpty ? (widget.hintText ?? '') : text;
-  }
-
   void _updateTextDirection(String text) {
     if (text.isEmpty) return;
-    final RegExp rtlScript = RegExp(r'[֑-߿יִ-﷽ﹰ-ﻼ]');
+    final RegExp rtlScript = RegExp(r'[֑-߿יִ-﷽ﹰ-ﻼ]');
     final firstChar = text.characters.firstWhere(
       (char) => char.trim().isNotEmpty,
       orElse: () => '',
@@ -102,6 +97,12 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
           : TextDirection.ltr;
     });
   }
+  
+  String get _previewText {
+    final text = _internalController.text;
+    return text.isEmpty ? (widget.hintText ?? '') : text;
+  }
+
 
   @override
   void initState() {
@@ -131,6 +132,8 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
   void _handleFocusChange() {
     if (!_isEditing && _textFieldFocusNode.hasFocus) {
       _textFieldFocusNode.unfocus();
+    } else if (_isEditing && !_textFieldFocusNode.hasFocus) {
+      _textFieldFocusNode.requestFocus();
     }
   }
 
@@ -212,41 +215,44 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
             ],
           ),
           if (_isEditing) ...[
-            TextField(
-              controller: _internalController,
-              focusNode: _textFieldFocusNode,
-              cursorColor: widget.cursorColor,
-              inputFormatters: [
-                if (widget.emojiConvert) EmojiInputFormatter(),
-              ],
-              onChanged: (value) {
-                widget.onChanged?.call(value);
-              },
-              onTap: () {
-                if (!_isEditing) {
-                  _textFieldFocusNode.unfocus();
-                  return;
-                }
-                if (widget.onTap != null) {
-                  widget.onTap!();
-                }
-              },
-              readOnly: widget.readOnly,
-              scrollController: widget.scrollController,
-              style: widget.style,
-              textCapitalization: widget.textCapitalization,
-              maxLines: widget.maxLines ?? null,
-              minLines: widget.minLines ?? 3,
-              expands: widget.expands,
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.newline,
+            Directionality(
               textDirection: _textDirection,
-              textAlign: _textDirection == TextDirection.rtl ? TextAlign.right : TextAlign.left,
-              autofocus: false,
-              decoration: widget.decoration.copyWith(
-                alignLabelWithHint: true,
-                contentPadding: widget.decoration.contentPadding ?? 
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: TextField(
+                controller: _internalController,
+                focusNode: _textFieldFocusNode,
+                cursorColor: widget.cursorColor,
+                inputFormatters: [
+                  if (widget.emojiConvert) EmojiInputFormatter(),
+                ],
+                onChanged: (value) {
+                  widget.onChanged?.call(value);
+                  _updateTextDirection(value);
+                },
+                onTap: () {
+                  if (!_isEditing) {
+                    _textFieldFocusNode.unfocus();
+                    return;
+                  }
+                  if (widget.onTap != null) {
+                    widget.onTap!();
+                  }
+                },
+                readOnly: widget.readOnly,
+                scrollController: widget.scrollController,
+                style: widget.style,
+                textCapitalization: widget.textCapitalization,
+                maxLines: widget.maxLines ?? null,
+                minLines: widget.minLines ?? 3,
+                expands: widget.expands,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                textAlign: _textDirection == TextDirection.rtl ? TextAlign.right : TextAlign.left,
+                autofocus: false,
+                decoration: widget.decoration.copyWith(
+                  alignLabelWithHint: true,
+                  contentPadding: widget.decoration.contentPadding ?? 
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
               ),
             ),
             if (widget.enableToolBar && !widget.readOnly)
