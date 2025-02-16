@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:markdown_editor_plus/markdown_editor_plus.dart';
+import 'package:markdown_editor_plus/widgets/toggle_markdown.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,10 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text("Home Screen"),
       ),
-      body: const Column(
+      body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          MarkdownAutoPreview(
+          const MarkdownAutoPreview(
             decoration: InputDecoration(
               hintText: 'Markdown Auto Preview',
             ),
@@ -43,7 +44,17 @@ class _HomeScreenState extends State<HomeScreen> {
             // minLines: 1,
             // expands: true,
           ),
-          SplittedMarkdownFormField(
+          ToggleableMarkdownEditor(
+  hintText: "Start typing...",
+  enableToolBar: true,
+  preserveLineBreaks: true,
+  maxLines: 5,
+  decoration: InputDecoration(
+    border: OutlineInputBorder(),
+    hintText: 'Enter your markdown text',
+  ),
+),
+          const SplittedMarkdownFormField(
             markdownSyntax: '## Headline',
             decoration: InputDecoration(
               hintText: 'Splitted Markdown FormField',
