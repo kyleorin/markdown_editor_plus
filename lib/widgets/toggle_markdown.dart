@@ -82,27 +82,35 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
   late Toolbar _toolbar;
   final FocusNode _textFieldFocusNode = FocusNode(debugLabel: '_textFieldFocusNode');
   bool _isEditing = true;
-
+  TextDirection _textDirection = TextDirection.ltr;
+  
   String get _previewText {
-    if (_internalController.text.isEmpty) {
-      return widget.hintText ?? "_No content yet_";
-    }
-    
-    if (widget.preserveLineBreaks) {
-      return _internalController.text
-          .split('\n')
-          .map((line) => '$line  ')
-          .join('\n');
-    }
-    
-    return _internalController.text;
+    final text = _internalController.text;
+    return text.isEmpty ? (widget.hintText ?? '') : text;
+  }
+
+  void _updateTextDirection(String text) {
+    if (text.isEmpty) return;
+    final RegExp rtlScript = RegExp(r'[\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC]');
+    final firstChar = text.characters.firstWhere(
+      (char) => char.trim().isNotEmpty,
+      orElse: () => '',
+    );
+    setState(() {
+      _textDirection = rtlScript.hasMatch(firstChar) 
+          ? TextDirection.rtl 
+          : TextDirection.ltr;
+    });
   }
 
   @override
   void initState() {
     super.initState();
     _internalController = widget.controller ?? TextEditingController();
-    _internalController.addListener(_handleTextChange);
+    _internalController.addListener(() {
+      _handleTextChange();
+      _updateTextDirection(_internalController.text);
+    });
     _textFieldFocusNode.addListener(_handleFocusChange);
     _toolbar = Toolbar(
       controller: _internalController,
@@ -228,6 +236,8 @@ class _ToggleableMarkdownEditorState extends State<ToggleableMarkdownEditor> {
               expands: widget.expands,
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
+              textDirection: _textDirection,
+              autofocus: false,
               decoration: widget.decoration.copyWith(
                 alignLabelWithHint: true,
                 contentPadding: widget.decoration.contentPadding ?? 
